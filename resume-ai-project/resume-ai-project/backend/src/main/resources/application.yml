@@ -1,0 +1,21 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /
+
+spring:
+  application:
+    name: resume-ai-analyzer
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+ai:
+  service:
+    url: http://localhost:5000
+
+logging:
+  level:
+    com.resumeai: DEBUG
+    org.springframework.web: INFO

@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Resume AI Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;900&family=DM+Mono:wght@500&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#080913;--surface:rgba(255,255,255,0.03);--border:rgba(255,255,255,0.08);
+  --indigo:#6366f1;--teal:#22d3a5;--rose:#f43f5e;--amber:#f59e0b;
+  --text:rgba(255,255,255,0.88);--muted:rgba(255,255,255,0.38);
+}
+body{background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--text);min-height:100vh;overflow-x:hidden}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:rgba(99,102,241,0.3);border-radius:3px}
+
+/* Canvas */
+#particles{position:fixed;inset:0;z-index:0;pointer-events:none}
+
+/* Layout */
+.app{position:relative;z-index:1;max-width:1060px;margin:0 auto;padding:0 24px 80px}
+
+/* Header */
+.header{padding:56px 0 48px;text-align:center;border-bottom:1px solid var(--border);animation:fadeUp .6s ease}
+.badge{display:inline-flex;align-items:center;gap:8px;background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.3);border-radius:20px;padding:5px 18px;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#818cf8;margin-bottom:22px}
+h1{font-size:clamp(30px,5vw,56px);font-weight:900;line-height:1.1;margin-bottom:16px;background:linear-gradient(135deg,#fff 30%,#6366f1 65%,#22d3a5);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.sub{color:var(--muted);font-size:15px;max-width:540px;margin:0 auto;line-height:1.7}
+
+/* Cards */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:28px 30px}
+.section-label{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:18px}
+
+/* Upload grid */
+.upload-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:22px;margin-top:44px}
+
+/* Dropzone */
+.dropzone{border:2px dashed rgba(255,255,255,.12);border-radius:14px;padding:36px 20px;text-align:center;cursor:pointer;transition:all .25s ease;background:rgba(255,255,255,.015)}
+.dropzone:hover,.dropzone.active{border-color:var(--indigo);background:rgba(99,102,241,.06)}
+.dz-icon{font-size:42px;margin-bottom:14px;display:block;transition:transform .3s ease}
+.dropzone:hover .dz-icon{transform:scale(1.15)}
+.dz-title{font-weight:700;font-size:15px;margin-bottom:6px}
+.dz-hint{color:var(--muted);font-size:12px}
+
+/* Select */
+select{width:100%;padding:13px 16px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:#fff;font-size:14px;outline:none;cursor:pointer;margin-bottom:18px;font-family:inherit;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
+
+/* Button */
+.btn{width:100%;padding:15px;border-radius:13px;border:none;background:linear-gradient(135deg,var(--indigo),var(--teal));color:#fff;font-size:15px;font-weight:700;cursor:pointer;letter-spacing:.5px;box-shadow:0 0 28px rgba(99,102,241,.4);transition:all .3s ease;font-family:inherit}
+.btn:hover{transform:translateY(-1px);box-shadow:0 4px 40px rgba(99,102,241,.55)}
+.btn:active{transform:translateY(0)}
+.btn:disabled{background:rgba(99,102,241,.3);cursor:not-allowed;box-shadow:none;transform:none}
+.btn-ghost{width:100%;padding:11px;border-radius:12px;background:transparent;border:1px solid rgba(255,255,255,.1);color:var(--muted);font-size:13px;cursor:pointer;margin-top:10px;font-family:inherit;transition:all .2s ease}
+.btn-ghost:hover{border-color:rgba(255,255,255,.2);color:#fff}
+
+/* Progress */
+.progress-wrap{margin-top:26px;animation:fadeUp .4s ease}
+.progress-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.progress-label{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:8px}
+.spinner{width:12px;height:12px;border-radius:50%;border:2px solid var(--indigo);border-top-color:transparent;animation:spin .8s linear infinite}
+.progress-pct{font-size:13px;color:var(--indigo);font-weight:700;font-family:'DM Mono',monospace}
+.progress-bar{height:6px;border-radius:3px;background:rgba(255,255,255,.06)}
+.progress-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--indigo),var(--teal));transition:width .8s cubic-bezier(.34,1.56,.64,1);box-shadow:0 0 12px rgba(99,102,241,.5)}
+
+/* Results */
+.scores{margin-top:52px;text-align:center;animation:fadeUp .6s ease}
+.scores-row{display:flex;justify-content:center;gap:52px;flex-wrap:wrap;margin-top:20px}
+.result-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:22px;margin-top:28px}
+.result-col{display:flex;flex-direction:column;gap:20px}
+
+/* Skill pill */
+.skill-pill{display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;letter-spacing:.4px;margin:3px 3px;transition:opacity .3s,transform .3s;opacity:0;transform:translateY(6px)}
+.skill-pill.found{background:rgba(34,211,165,.1);border:1px solid rgba(34,211,165,.3);color:#22d3a5}
+.skill-pill.missing{background:rgba(244,63,94,.1);border:1px solid rgba(244,63,94,.3);color:#f87171}
+.skill-pill.visible{opacity:1;transform:translateY(0)}
+
+/* Suggestion */
+.suggestion{display:flex;gap:14px;align-items:flex-start;padding:13px 16px;border-radius:12px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06);opacity:0;transform:translateX(-18px);transition:opacity .4s,transform .4s}
+.suggestion.visible{opacity:1;transform:translateX(0)}
+.sug-num{width:26px;height:26px;border-radius:50%;flex-shrink:0;background:rgba(99,102,241,.18);border:1px solid rgba(99,102,241,.35);display:flex;align-items:center;justify-content:center;color:#818cf8;font-weight:700;font-size:12px}
+.sug-text{color:rgba(255,255,255,.72);font-size:13px;line-height:1.65}
+
+/* Bar chart */
+.bar-row{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.bar-name{width:120px;font-size:12px;color:var(--muted);text-align:right;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar-track{flex:1;height:8px;border-radius:4px;background:rgba(255,255,255,.06)}
+.bar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--indigo),var(--teal));transition:width .9s cubic-bezier(.34,1.56,.64,1);box-shadow:0 0 6px rgba(99,102,241,.4)}
+.bar-pct{width:30px;font-size:11px;color:var(--muted);font-family:'DM Mono',monospace}
+
+/* Summary band */
+.summary-band{border-radius:18px;padding:26px 30px;text-align:center;margin-top:22px}
+.summary-verdict{font-size:24px;font-weight:900;margin-bottom:8px}
+.summary-meta{color:var(--muted);font-size:13px;font-family:'DM Mono',monospace}
+
+/* Score ring SVG */
+.ring-label{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:6px;text-align:center}
+
+/* AI summary */
+.ai-summary{border-radius:18px;padding:24px 28px;margin-top:22px;background:linear-gradient(135deg,rgba(99,102,241,.08),rgba(34,211,165,.04));border:1px solid rgba(99,102,241,.2)}
+.ai-summary p{color:rgba(255,255,255,.7);font-size:14px;line-height:1.8;margin-top:10px}
+
+/* Toast */
+.toast{position:fixed;top:22px;right:22px;z-index:1000;padding:13px 20px;border-radius:12px;font-size:14px;font-weight:600;animation:slideIn .3s ease;box-shadow:0 8px 30px rgba(0,0,0,.4)}
+.toast.success{background:rgba(34,211,165,.12);border:1px solid rgba(34,211,165,.35);color:#22d3a5}
+.toast.error{background:rgba(244,63,94,.1);border:1px solid rgba(244,63,94,.3);color:#f87171}
+
+/* Error */
+.error-box{margin-top:24px;padding:16px 22px;border-radius:14px;background:rgba(244,63,94,.07);border:1px solid rgba(244,63,94,.2);color:#f87171;font-size:14px;animation:fadeUp .4s ease}
+
+/* Footer */
+footer{margin-top:64px;text-align:center;color:rgba(255,255,255,.14);font-size:11px;letter-spacing:2px}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideIn{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:translateX(0)}}
+</style>
+</head>
+<body>
+<canvas id="particles"></canvas>
+
+<div class="app">
+  <!-- Header -->
+  <header class="header">
+    <div class="badge">⚡ GPT-4 · Spring Boot · React 18</div>
+    <h1>Resume Intelligence<br>Platform</h1>
+    <p class="sub">Upload your resume. Get an ATS score, skill gap analysis & actionable suggestions — instantly.</p>
+  </header>
+
+  <!-- Upload Section -->
+  <div class="upload-grid">
+    <!-- Dropzone -->
+    <div class="card">
+      <p class="section-label">01 — Upload Resume</p>
+      <div class="dropzone" id="dz" onclick="triggerFile()">
+        <span class="dz-icon" id="dzIcon">☁️</span>
+        <div class="dz-title" id="dzTitle">Drag & drop your PDF</div>
+        <div class="dz-hint" id="dzHint">or click to browse — PDF only, max 10MB</div>
+      </div>
+      <input type="file" id="fileInput" accept=".pdf" style="display:none" onchange="onFileSelect(this)"/>
+    </div>
+
+    <!-- Role + Analyze -->
+    <div class="card">
+      <p class="section-label">02 — Target Job Role</p>
+      <select id="jobRole">
+        <option>Software Engineer</option>
+        <option>Senior Java Developer</option>
+        <option>Full Stack Engineer</option>
+        <option>Data Scientist</option>
+        <option>DevOps Engineer</option>
+        <option>Machine Learning Engineer</option>
+        <option>Cloud Architect</option>
+        <option>Product Manager</option>
+        <option>Frontend Developer</option>
+      </select>
+      <p class="section-label">03 — Run Analysis</p>
+      <button class="btn" id="analyzeBtn" onclick="runDemo()">🚀 Analyze Resume with AI</button>
+      <button class="btn-ghost" id="resetBtn" style="display:none" onclick="resetAll()">↩ Start Over</button>
+    </div>
+  </div>
+
+  <!-- Progress -->
+  <div class="progress-wrap" id="progressWrap" style="display:none">
+    <div class="progress-top">
+      <span class="progress-label"><span class="spinner"></span><span id="stageLabel">Uploading PDF…</span></span>
+      <span class="progress-pct" id="stagePct">25%</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:25%"></div></div>
+  </div>
+
+  <!-- Error -->
+  <div class="error-box" id="errorBox" style="display:none"></div>
+
+  <!-- Results (hidden initially) -->
+  <div id="results" style="display:none">
+    <!-- Score rings -->
+    <div class="scores">
+      <p class="section-label" style="text-align:center" id="roleLabel">Analysis Results</p>
+      <div class="scores-row">
+        <div>
+          <svg id="ring1" width="140" height="140" viewBox="0 0 120 120">
+            <circle cx="60" cy="60" r="46" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="10"/>
+            <circle id="ring1arc" cx="60" cy="60" r="46" fill="none" stroke="#22d3a5" stroke-width="10"
+              stroke-dasharray="0 289" stroke-linecap="round" transform="rotate(-90 60 60)"
+              style="transition:stroke-dasharray 1.2s cubic-bezier(.34,1.2,.64,1);filter:drop-shadow(0 0 8px #22d3a5)"/>
+            <text id="ring1val" x="60" y="60" dominant-baseline="middle" text-anchor="middle" fill="white" font-size="20" font-weight="800" font-family="'DM Mono',monospace">0</text>
+            <text x="60" y="78" dominant-baseline="middle" text-anchor="middle" fill="rgba(255,255,255,.35)" font-size="8">/100</text>
+          </svg>
+          <div class="ring-label">ATS Score</div>
+        </div>
+        <div>
+          <svg id="ring2" width="140" height="140" viewBox="0 0 120 120">
+            <circle cx="60" cy="60" r="46" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="10"/>
+            <circle id="ring2arc" cx="60" cy="60" r="46" fill="none" stroke="#6366f1" stroke-width="10"
+              stroke-dasharray="0 289" stroke-linecap="round" transform="rotate(-90 60 60)"
+              style="transition:stroke-dasharray 1.2s cubic-bezier(.34,1.2,.64,1) .2s;filter:drop-shadow(0 0 8px #6366f1)"/>
+            <text id="ring2val" x="60" y="60" dominant-baseline="middle" text-anchor="middle" fill="white" font-size="20" font-weight="800" font-family="'DM Mono',monospace">0</text>
+            <text x="60" y="78" dominant-baseline="middle" text-anchor="middle" fill="rgba(255,255,255,.35)" font-size="8">/100</text>
+          </svg>
+          <div class="ring-label">Job Match</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main result grid -->
+    <div class="result-grid">
+      <!-- Skills column -->
+      <div class="card">
+        <p class="section-label" id="skillsLabel">✅ Extracted Skills</p>
+        <div id="skillsContainer"></div>
+        <div id="barChartSection" style="margin-top:22px">
+          <p class="section-label">Skill Strength</p>
+          <div id="barChart"></div>
+        </div>
+      </div>
+
+      <!-- Missing + Suggestions column -->
+      <div class="result-col">
+        <div class="card">
+          <p class="section-label" id="missingLabel">⚠️ Missing Skills</p>
+          <div id="missingContainer"></div>
+        </div>
+        <div class="card">
+          <p class="section-label">💡 AI Suggestions</p>
+          <div id="suggestionsContainer"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Summary -->
+    <div class="ai-summary" id="aiSummary">
+      <p class="section-label">🤖 AI Summary</p>
+      <p id="aiSummaryText"></p>
+    </div>
+
+    <!-- Verdict band -->
+    <div class="summary-band" id="verdictBand">
+      <div class="summary-verdict" id="verdictText"></div>
+      <div class="summary-meta" id="verdictMeta"></div>
+    </div>
+  </div>
+
+  <footer>RESUME AI PLATFORM · JAVA 17 + PYTHON + REACT 18 · GPT-4 POWERED</footer>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast" style="display:none"></div>
+
+<script>
+/* ── Particle Canvas ── */
+(function(){
+  const c=document.getElementById('particles'),ctx=c.getContext('2d');
+  c.width=innerWidth;c.height=innerHeight;
+  const dots=Array.from({length:60},()=>({x:Math.random()*c.width,y:Math.random()*c.height,vx:(Math.random()-.5)*.35,vy:(Math.random()-.5)*.35,r:Math.random()*1.5+.5}));
+  (function draw(){
+    ctx.clearRect(0,0,c.width,c.height);
+    dots.forEach(d=>{d.x+=d.vx;d.y+=d.vy;if(d.x<0||d.x>c.width)d.vx*=-1;if(d.y<0||d.y>c.height)d.vy*=-1;ctx.beginPath();ctx.arc(d.x,d.y,d.r,0,Math.PI*2);ctx.fillStyle='rgba(99,102,241,.3)';ctx.fill()});
+    dots.forEach((a,i)=>dots.slice(i+1).forEach(b=>{const d=Math.hypot(a.x-b.x,a.y-b.y);if(d<130){ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.strokeStyle=`rgba(99,102,241,${.12*(1-d/130)})`;ctx.lineWidth=.5;ctx.stroke()}}));
+    requestAnimationFrame(draw);
+  })();
+})();
+
+/* ── State ── */
+let selectedFile=null;
+let isLoading=false;
+
+/* ── File handling ── */
+function triggerFile(){if(!isLoading)document.getElementById('fileInput').click()}
+function onFileSelect(inp){
+  if(inp.files[0]){
+    selectedFile=inp.files[0];
+    document.getElementById('dzIcon').textContent='📄';
+    document.getElementById('dzTitle').textContent=inp.files[0].name;
+    document.getElementById('dzHint').textContent=(inp.files[0].size/1024).toFixed(1)+' KB — click to replace';
+  }
+}
+const dz=document.getElementById('dz');
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('active')});
+dz.addEventListener('dragleave',()=>dz.classList.remove('active'));
+dz.addEventListener('drop',e=>{
+  e.preventDefault();dz.classList.remove('active');
+  const f=e.dataTransfer.files[0];
+  if(f&&f.type==='application/pdf'){
+    selectedFile=f;
+    document.getElementById('dzIcon').textContent='📄';
+    document.getElementById('dzTitle').textContent=f.name;
+    document.getElementById('dzHint').textContent=(f.size/1024).toFixed(1)+' KB';
+  }
+});
+
+/* ── Toast ── */
+function showToast(msg,type='success'){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='toast '+type;t.style.display='block';
+  setTimeout(()=>t.style.display='none',3500);
+}
+
+/* ── Progress ── */
+const stages=[
+  {label:'Uploading PDF…',pct:25},
+  {label:'Extracting text with Apache PDFBox…',pct:52},
+  {label:'GPT-4 analyzing your resume…',pct:80},
+  {label:'Mapping results to DTOs…',pct:95},
+  {label:'Analysis complete! ✅',pct:100},
+];
+function setStage(i){
+  const s=stages[i];
+  document.getElementById('stageLabel').textContent=s.label;
+  document.getElementById('stagePct').textContent=s.pct+'%';
+  document.getElementById('progressFill').style.width=s.pct+'%';
+}
+
+/* ── Score ring animation ── */
+const CIRC=2*Math.PI*46;
+function animateRing(arcEl,valEl,target,color){
+  arcEl.style.stroke=color;
+  arcEl.style.filter=`drop-shadow(0 0 8px ${color})`;
+  const dash=(target/100)*CIRC;
+  arcEl.setAttribute('stroke-dasharray',`${dash} ${CIRC-dash}`);
+  let cur=0;
+  const step=()=>{
+    if(cur<target){cur++;valEl.textContent=cur;requestAnimationFrame(step)}
+    else valEl.textContent=target;
+  };
+  setTimeout(step,400);
+}
+function scoreColor(n){return n>=80?'#22d3a5':n>=55?'#f59e0b':'#f43f5e'}
+
+/* ── Demo data (used when backend not available) ── */
+const DEMO={
+  atsScore:74,jobMatchScore:81,
+  extractedSkills:['Java','Spring Boot','REST APIs','Microservices','Docker','AWS','MySQL','Git','Maven','JUnit','Agile','CI/CD'],
+  missingSkills:['Kubernetes','GraphQL','Kafka','Redis','Terraform'],
+  suggestions:[
+    'Add quantified achievements — e.g., "Reduced API latency by 35%"',
+    'Include cloud certifications (AWS Solutions Architect, GCP)',
+    'Add a concise professional summary at the top of your resume',
+    'Mention experience with message brokers like Kafka or RabbitMQ',
+    'Highlight container orchestration skills (Kubernetes/Helm)',
+    'Use stronger action verbs: "Architected", "Spearheaded", "Optimized"',
+  ],
+  jobRole:'Senior Java Developer',
+  analysisStatus:'SUCCESS',
+  rawAiResponse:'Experienced Java backend developer with strong Spring Boot and microservices expertise. Demonstrates solid AWS and Docker skills. To strengthen this resume for senior roles, adding Kubernetes orchestration experience and quantified project outcomes would significantly boost both ATS compatibility and recruiter appeal.',
+};
+
+/* ── Main run ── */
+async function runDemo(){
+  if(isLoading)return;
+  document.getElementById('errorBox').style.display='none';
+  document.getElementById('results').style.display='none';
+
+  isLoading=true;
+  const btn=document.getElementById('analyzeBtn');
+  btn.disabled=true;btn.textContent='⏳ Analyzing…';
+  document.getElementById('progressWrap').style.display='block';
+
+  const jobRole=document.getElementById('jobRole').value;
+
+  // If file uploaded, try real backend; else run demo
+  if(selectedFile){
+    let stageIdx=0;
+    const stageTimer=setInterval(()=>{if(stageIdx<3)setStage(++stageIdx)},900);
+    try{
+      const form=new FormData();
+      form.append('file',selectedFile);
+      form.append('jobRole',jobRole);
+      const res=await fetch('/api/resume/full-analysis',{method:'POST',body:form});
+      clearInterval(stageTimer);
+      if(!res.ok)throw new Error(await res.text());
+      const data=await res.json();
+      setStage(4);
+      setTimeout(()=>showResults(data),600);
+    }catch(e){
+      clearInterval(stageTimer);
+      // Fallback to demo data
+      setStage(4);
+      const demoData={...DEMO,jobRole};
+      setTimeout(()=>showResults(demoData),600);
+      showToast('Backend offline — showing demo results','error');
+    }
+  } else {
+    // Pure demo mode — simulate timing
+    for(let i=0;i<stages.length;i++){
+      await new Promise(r=>setTimeout(r,i===0?200:700));
+      setStage(i);
+    }
+    await new Promise(r=>setTimeout(r,400));
+    showResults({...DEMO,jobRole});
+    showToast('Demo mode — connect backend for real analysis 🚀');
+  }
+}
+
+/* ── Render results ── */
+function showResults(data){
+  isLoading=false;
+  const btn=document.getElementById('analyzeBtn');
+  btn.disabled=false;btn.textContent='🚀 Analyze Resume with AI';
+  document.getElementById('progressWrap').style.display='none';
+  document.getElementById('resetBtn').style.display='block';
+
+  const res=document.getElementById('results');
+  res.style.display='block';
+  res.style.animation='fadeUp .6s ease';
+
+  // Role label
+  document.getElementById('roleLabel').textContent=`Analysis Results — ${data.jobRole}`;
+
+  // Score rings
+  const atsColor=scoreColor(data.atsScore);
+  const matchColor=scoreColor(data.jobMatchScore);
+  animateRing(document.getElementById('ring1arc'),document.getElementById('ring1val'),data.atsScore||0,atsColor);
+  animateRing(document.getElementById('ring2arc'),document.getElementById('ring2val'),data.jobMatchScore||0,matchColor);
+
+  // Skills
+  const sc=document.getElementById('skillsContainer');sc.innerHTML='';
+  document.getElementById('skillsLabel').textContent=`✅ Extracted Skills (${(data.extractedSkills||[]).length})`;
+  (data.extractedSkills||[]).forEach((sk,i)=>{
+    const p=document.createElement('span');
+    p.className='skill-pill found';p.textContent='✓ '+sk;sc.appendChild(p);
+    setTimeout(()=>p.classList.add('visible'),i*55);
+  });
+
+  // Bar chart
+  const bc=document.getElementById('barChart');bc.innerHTML='';
+  (data.extractedSkills||[]).slice(0,8).forEach((sk,i)=>{
+    const w=Math.max(28,100-i*9);
+    bc.innerHTML+=`<div class="bar-row">
+      <div class="bar-name">${sk}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:0%" data-w="${w}%"></div></div>
+      <div class="bar-pct">${w}%</div>
+    </div>`;
+  });
+  setTimeout(()=>{
+    bc.querySelectorAll('.bar-fill').forEach((b,i)=>{
+      setTimeout(()=>b.style.width=b.dataset.w,i*80);
+    });
+  },300);
+
+  // Missing
+  const mc=document.getElementById('missingContainer');mc.innerHTML='';
+  document.getElementById('missingLabel').textContent=`⚠️ Missing Skills (${(data.missingSkills||[]).length})`;
+  if((data.missingSkills||[]).length===0){
+    mc.innerHTML='<span style="color:#22d3a5;font-size:13px">🎉 No major skill gaps found!</span>';
+  } else {
+    (data.missingSkills||[]).forEach((sk,i)=>{
+      const p=document.createElement('span');
+      p.className='skill-pill missing';p.textContent='✗ '+sk;mc.appendChild(p);
+      setTimeout(()=>p.classList.add('visible'),i*65);
+    });
+  }
+
+  // Suggestions
+  const sg=document.getElementById('suggestionsContainer');sg.innerHTML='';
+  (data.suggestions||[]).forEach((s,i)=>{
+    const d=document.createElement('div');
+    d.className='suggestion';
+    d.innerHTML=`<div class="sug-num">${i+1}</div><div class="sug-text">${s}</div>`;
+    sg.appendChild(d);
+    setTimeout(()=>d.classList.add('visible'),i*120);
+  });
+
+  // AI Summary
+  if(data.rawAiResponse){
+    document.getElementById('aiSummaryText').textContent=data.rawAiResponse;
+    document.getElementById('aiSummary').style.display='block';
+  } else {
+    document.getElementById('aiSummary').style.display='none';
+  }
+
+  // Verdict
+  const vb=document.getElementById('verdictBand');
+  const ats=data.atsScore||0;
+  const verdict=ats>=80?'Excellent Resume ⭐':ats>=55?'Good — Room to Improve 📈':'Needs Work — Follow Suggestions 🔧';
+  const vColor=scoreColor(ats);
+  vb.style.background=`linear-gradient(135deg,${vColor}18,transparent)`;
+  vb.style.border=`1px solid ${vColor}40`;
+  document.getElementById('verdictText').style.color=vColor;
+  document.getElementById('verdictText').textContent=verdict;
+  document.getElementById('verdictMeta').textContent=`ATS Score: ${data.atsScore}/100 · Job Match: ${data.jobMatchScore}/100 · Status: ${data.analysisStatus}`;
+
+  showToast('Analysis complete! 🎉');
+  res.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+/* ── Reset ── */
+function resetAll(){
+  selectedFile=null;
+  document.getElementById('dzIcon').textContent='☁️';
+  document.getElementById('dzTitle').textContent='Drag & drop your PDF';
+  document.getElementById('dzHint').textContent='or click to browse — PDF only, max 10MB';
+  document.getElementById('fileInput').value='';
+  document.getElementById('results').style.display='none';
+  document.getElementById('errorBox').style.display='none';
+  document.getElementById('progressWrap').style.display='none';
+  document.getElementById('resetBtn').style.display='none';
+  document.getElementById('ring1arc').setAttribute('stroke-dasharray','0 289');
+  document.getElementById('ring2arc').setAttribute('stroke-dasharray','0 289');
+  document.getElementById('ring1val').textContent='0';
+  document.getElementById('ring2val').textContent='0';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+</script>
+</body>
+</html>
